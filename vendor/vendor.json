@@ -1,0 +1,47 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"path": "get",
+			"revision": ""
+		},
+		{
+			"checksumSHA1": "CDOphCxF7dup+hBBVRpFeQhM9Jw=",
+			"path": "github.com/asaskevich/govalidator",
+			"revision": "593d64559f7600f29581a3ee42177f5dbded27a9",
+			"revisionTime": "2016-07-15T17:06:12Z"
+		},
+		{
+			"checksumSHA1": "DLcP1TBsvOvfOIwUagfE1dOdPG4=",
+			"path": "github.com/boltdb/bolt",
+			"revision": "583e8937c61f1af6513608ccc75c97b6abdf4ff9",
+			"revisionTime": "2016-08-18T17:01:52Z"
+		},
+		{
+			"checksumSHA1": "hwGdeQbcfc2RvIQS5wAaYRKJDd4=",
+			"path": "github.com/imdario/mergo",
+			"revision": "50d4dbd4eb0e84778abe37cefef140271d96fade",
+			"revisionTime": "2016-05-17T06:44:35Z"
+		},
+		{
+			"checksumSHA1": "VDdgQz6FoZx6+4WrfrnrpBJIaDU=",
+			"path": "github.com/ugorji/go/codec",
+			"revision": "4a1cb5252a6951f715a85d0e4be334c2a2dbf2a2",
+			"revisionTime": "2016-08-08T21:54:28Z"
+		},
+		{
+			"checksumSHA1": "8fD/im5Kwvy3JgmxulDTambmE8w=",
+			"path": "golang.org/x/sys/unix",
+			"revision": "a646d33e2ee3172a661fc09bca23bb4889a41bc8",
+			"revisionTime": "2016-07-15T05:43:45Z"
+		},
+		{
+			"checksumSHA1": "99y5HMpSnbs0LdDxK9Hviim2yGU=",
+			"path": "gopkg.in/asaskevich/govalidator.v4",
+			"revision": "7664702784775e51966f0885f5cd27435916517b",
+			"revisionTime": "2016-05-18T19:07:39Z"
+		}
+	],
+	"rootPath": "github.com/wanliu/store"
+}
