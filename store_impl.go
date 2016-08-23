@@ -138,7 +138,7 @@ func (s *store) Put(id uint64, attr Map) (err error) {
 		}
 
 		idxSet := s.NewIdxSet(obj, tx, bIdx)
-		// idxSet.Read()
+		idxSet.Read()
 
 		defer func() {
 			if err == nil {

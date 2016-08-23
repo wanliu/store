@@ -21,6 +21,7 @@ type indexRule struct {
 type index struct {
 	rule     indexRule
 	set      *indexSet
+	obj      interface{}
 	b        *bolt.Bucket
 	dirty    bool
 	value    []byte
@@ -189,7 +190,9 @@ func (idx *index) targetId() uint64 {
 
 func (idx *index) pure() error {
 	if len(idx.elements) == 0 {
-		if err := idx.b.Delete(idx.value); err != nil {
+		name, _ := idx.idxName()
+
+		if err := idx.b.Delete(name); err != nil {
 			return err
 		}
 		idx.dirty = false
