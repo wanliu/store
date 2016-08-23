@@ -1,6 +1,7 @@
 package store
 
 import (
+	// "log"
 	"reflect"
 	"time"
 
@@ -84,13 +85,34 @@ func (s *store) NewEntity() interface{} {
 func (s *store) Create(attr Map) (obj interface{}, err error) {
 	// instance objecct
 	obj = s.NewEntity()
+	err = s.db.Update(func(tx *bolt.Tx) error {
+		b, err := tx.CreateBucketIfNotExists([]byte(s.Name()))
+		if err != nil {
+			return err
+		}
 
-	// merge attributes
-	if err = MergeStruct(obj, attr); err != nil {
-		return nil, err
-	}
+		bIdx, err := b.CreateBucketIfNotExists(IdxBucket)
+		if err != nil {
+			return err
+		}
 
-	err = s.Write(obj)
+		idxSet := s.NewIdxSet(obj, tx, bIdx)
+		idxSet.Read()
+
+		defer func() {
+			if err == nil {
+				err = idxSet.Write()
+			}
+		}()
+
+		// merge attributes
+		if err = MergeStruct(obj, attr); err != nil {
+			return err
+		}
+
+		err = s.Write(tx, obj)
+		return err
+	})
 
 	return obj, err
 }
@@ -105,18 +127,40 @@ func (s *store) Put(id uint64, attr Map) (err error) {
 		return err
 	}
 
-	if err = MergeStruct(obj, attr); err != nil {
+	return s.db.Update(func(tx *bolt.Tx) error {
+		b, err := tx.CreateBucketIfNotExists([]byte(s.Name()))
+		if err != nil {
+			return err
+		}
+		bIdx, err := b.CreateBucketIfNotExists(IdxBucket)
+		if err != nil {
+			return err
+		}
+
+		idxSet := s.NewIdxSet(obj, tx, bIdx)
+		// idxSet.Read()
+
+		defer func() {
+			if err == nil {
+				err = idxSet.Write()
+			}
+		}()
+
+		if err = MergeStruct(obj, attr); err != nil {
+			return err
+		}
+
+		pkey, err := s.primaryKey(obj)
+
+		if err != nil {
+			return err
+		}
+
+		pkey.Set(id)
+
+		err = s.Write(tx, obj)
 		return err
-	}
-
-	pkey, err := s.primaryKey(obj)
-
-	if err != nil {
-		return err
-	}
-
-	pkey.Set(id)
-	return s.Write(obj)
+	})
 }
 
 func (s *store) Name() string {
@@ -130,3 +174,9 @@ func (s *store) Name() string {
 func (s *store) String() string {
 	return s.Name() + "Store"
 }
+
+// func printElements(idxSet *indexSet) {
+// 	for _, idx := range idxSet.indexes {
+// 		log.Printf("elements  %+v", idx.Elements())
+// 	}
+// }

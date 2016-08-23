@@ -41,7 +41,7 @@ func (s *store) Read(id uint64) (obj interface{}, err error) {
 	return obj, err
 }
 
-func (s *store) Write(obj interface{}) (err error) {
+func (s *store) Write(tx *bolt.Tx, obj interface{}) (err error) {
 	var ok bool
 
 	if ok, err = s.Validate(obj); !ok {
@@ -49,60 +49,60 @@ func (s *store) Write(obj interface{}) (err error) {
 	}
 
 	// write to boltdb buckets
-	return s.db.Update(func(tx *bolt.Tx) error {
-		var (
-			b     *bolt.Bucket
-			pkey  Keyer
-			bName = []byte(s.Name())
-		)
-		// Open or Create Bucket
-		if b, err = tx.CreateBucketIfNotExists(bName); err != nil {
-			return err
+	// return s.db.Update(func(tx *bolt.Tx) error {
+	var (
+		b     *bolt.Bucket
+		pkey  Keyer
+		bName = []byte(s.Name())
+	)
+	// Open or Create Bucket
+	if b, err = tx.CreateBucketIfNotExists(bName); err != nil {
+		return err
+	}
+
+	// Set Primary Key and return ID
+	if pkey, err = s.primaryKey(obj); err != nil {
+		return err
+	}
+
+	if pkey.Value() == 0 {
+		if s.autoIncrement {
+			id, _ := b.NextSequence()
+			pkey.Set(id)
+		} else {
+			return ErrInvalidPKey
 		}
+	}
 
-		// Set Primary Key and return ID
-		if pkey, err = s.primaryKey(obj); err != nil {
-			return err
-		}
+	// Call beforeCreate Hook
 
-		if pkey.Value() == 0 {
-			if s.autoIncrement {
-				id, _ := b.NextSequence()
-				pkey.Set(id)
-			} else {
-				return ErrInvalidPKey
-			}
-		}
+	// Timestamps
+	createTimestamp(obj)
 
-		// Call beforeCreate Hook
+	// bckIndex, err := b.CreateBucketIfNotExists(s.indexName)
+	// if err != nil {
+	// 	return err
+	// }
 
-		// Timestamps
-		createTimestamp(obj)
+	// Encoder
+	buf, err := s.Encode(obj)
 
-		bckIndex, err := b.CreateBucketIfNotExists(s.indexName)
-		if err != nil {
-			return err
-		}
+	if err != nil {
+		return err
+	}
 
-		// Encoder
-		buf, err := s.Encode(obj)
+	if err = b.Put(s.IdName(pkey), buf); err != nil {
+		return err
+	}
 
-		if err != nil {
-			return err
-		}
+	// write Indexes
+	// if err = s.WriteIndexes(bckIndex, obj); err != nil {
+	// 	return err
+	// }
 
-		if err = b.Put(s.IdName(pkey), buf); err != nil {
-			return err
-		}
-
-		// write Indexes
-		if err = s.WriteIndexes(bckIndex, obj); err != nil {
-			return err
-		}
-
-		// Call afterCreate Hook
-		return nil
-	})
+	// Call afterCreate Hook
+	return nil
+	// })
 }
 
 func (s *store) Delete(id uint64) (err error) {
@@ -133,9 +133,9 @@ func (s *store) Delete(id uint64) (err error) {
 			return ErrMissingIndexBucket
 		}
 
-		if err = s.RemoveIndexes(bckIndex, obj); err != nil {
-			return err
-		}
+		// if err = s.RemoveIndexes(bckIndex, obj); err != nil {
+		// 	return err
+		// }
 
 		if err = b.Delete(s.IdName(pkey)); err != nil {
 			return err

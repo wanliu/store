@@ -47,6 +47,21 @@ func TestUser(t *testing.T) {
 	}
 
 	t.Logf("UserStore put User object , %+v", usr)
+
+	usr, err = UserStore.Create(map[string]interface{}{
+		"Login":  "bobl",
+		"Email":  "bob@gmail.com",
+		"Phone":  "0734-13412340996",
+		"Mobile": "1867341234",
+		"Title":  "管理员",
+		"Avatar": "/asdf.png",
+	})
+
+	if err != nil {
+		t.Fatalf("create User failed %s", err)
+	}
+	t.Logf("UserStore created User object , %+v", usr)
+
 }
 
 func init() {

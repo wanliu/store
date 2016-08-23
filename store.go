@@ -7,13 +7,15 @@ import (
 	"github.com/ugorji/go/codec"
 )
 
+var IdxBucket = []byte("Indexes")
+
 type store struct {
 	keyName       string
 	bucketName    string
 	db            *bolt.DB
 	autoIncrement bool
 	codec         codec.Handle
-	indexes       []Index
+	indexes       []indexRule
 	indexName     []byte
 	// eacher    *Eacher
 	Entity interface{}
