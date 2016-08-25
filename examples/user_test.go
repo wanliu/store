@@ -47,6 +47,39 @@ func TestUser(t *testing.T) {
 	}
 
 	t.Logf("UserStore put User object , %+v", usr)
+
+	usr, err = UserStore.Create(map[string]interface{}{
+		"Login":  "bobl",
+		"Email":  "bob@gmail.com",
+		"Phone":  "0734-13412340996",
+		"Mobile": "1867341234",
+		"Title":  "管理员",
+		"Avatar": "/asdf.png",
+	})
+
+	if err != nil {
+		t.Fatalf("create User failed %s", err)
+	}
+	t.Logf("UserStore created User object , %+v", usr)
+
+	if err = UserStore.Put(2, map[string]interface{}{
+		"Login": "hyyysios",
+		// "Title": "经理",
+	}); err != nil {
+		t.Fatalf("put User failed %s", err)
+	}
+
+	if usr, err = UserStore.Get(2); err != nil {
+		t.Fatalf("read User failed %s", err)
+	}
+
+	t.Logf("UserStore put User object , %+v", usr)
+
+	// if err = UserStore.Remove(2); err != nil {
+	// 	t.Fatalf("read User failed %s", err)
+	// }
+
+	// t.Logf("UserStore remove object 2 success")
 }
 
 func init() {

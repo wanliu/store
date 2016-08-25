@@ -12,6 +12,9 @@ var (
 	ErrMissingBucket      = errors.New("cant open this bucket")
 	ErrMissingIndexBucket = errors.New("can't open this index bucket")
 	ErrZeroID             = errors.New("ID can't be zero value")
+	ErrNotEmptyIndex      = errors.New("index is not empty")
+	ErrConvertInvalid     = errors.New("invalid type convert")
+	ErrMissingValue       = errors.New("value is nil or empty")
 )
 
 type ErrorUniqueIndex struct {

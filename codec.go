@@ -6,9 +6,10 @@ var (
 	bh codec.BincHandle
 	mh codec.MsgpackHandle
 	ch codec.CborHandle
+	jh codec.JsonHandle
 )
 
-var defCodec = &bh
+var defCodec = &jh
 
 func (s *store) Encode(obj interface{}) ([]byte, error) {
 	var (
