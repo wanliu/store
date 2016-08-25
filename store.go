@@ -37,6 +37,7 @@ type Storage interface {
 	Create(Map) (interface{}, error)
 	Get(uint64) (interface{}, error)
 	Put(uint64, Map) error
+	Remove(uint64) error
 	// Read(uint64) error
 	// Write(interface{}) error
 	// Delete(uint64) error

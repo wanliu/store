@@ -1,7 +1,6 @@
 package store
 
 import (
-	// "log"
 	"reflect"
 	"time"
 
@@ -91,6 +90,11 @@ func (s *store) Create(attr Map) (obj interface{}, err error) {
 			return err
 		}
 
+		// merge attributes
+		if err = MergeStruct(obj, attr); err != nil {
+			return err
+		}
+
 		bIdx, err := b.CreateBucketIfNotExists(IdxBucket)
 		if err != nil {
 			return err
@@ -105,8 +109,7 @@ func (s *store) Create(attr Map) (obj interface{}, err error) {
 			}
 		}()
 
-		// merge attributes
-		if err = MergeStruct(obj, attr); err != nil {
+		if err = idxSet.Evaluate(); err != nil {
 			return err
 		}
 
@@ -118,16 +121,21 @@ func (s *store) Create(attr Map) (obj interface{}, err error) {
 }
 
 func (s *store) Get(id uint64) (obj interface{}, err error) {
-	return s.Read(id)
+	err = s.db.View(func(tx *bolt.Tx) error {
+		obj, err = s.Read(tx, id)
+		return err
+	})
+
+	return obj, err
 }
 
 func (s *store) Put(id uint64, attr Map) (err error) {
-	obj, err := s.Read(id)
-	if err != nil {
-		return err
-	}
-
 	return s.db.Update(func(tx *bolt.Tx) error {
+		obj, err := s.Read(tx, id)
+		if err != nil {
+			return err
+		}
+
 		b, err := tx.CreateBucketIfNotExists([]byte(s.Name()))
 		if err != nil {
 			return err
@@ -142,11 +150,17 @@ func (s *store) Put(id uint64, attr Map) (err error) {
 
 		defer func() {
 			if err == nil {
-				err = idxSet.Write()
+				err = idxSet.Update(obj)
 			}
 		}()
 
 		if err = MergeStruct(obj, attr); err != nil {
+			return err
+		}
+
+		evlSet := s.NewIdxSet(obj, tx, bIdx)
+		evlSet.Read()
+		if err = evlSet.Evaluate(); err != nil {
 			return err
 		}
 
@@ -159,6 +173,36 @@ func (s *store) Put(id uint64, attr Map) (err error) {
 		pkey.Set(id)
 
 		err = s.Write(tx, obj)
+		return err
+	})
+}
+
+func (s *store) Remove(id uint64) (err error) {
+	return s.db.Update(func(tx *bolt.Tx) error {
+		b, err := tx.CreateBucketIfNotExists([]byte(s.Name()))
+		if err != nil {
+			return err
+		}
+
+		bIdx, err := b.CreateBucketIfNotExists(IdxBucket)
+		if err != nil {
+			return err
+		}
+
+		obj, err := s.Read(tx, id)
+		if err != nil {
+			return err
+		}
+
+		idxSet := s.NewIdxSet(obj, tx, bIdx)
+		idxSet.Read()
+
+		defer func() {
+			if err == nil {
+				err = idxSet.Delete()
+			}
+		}()
+		err = s.Delete(tx, id)
 		return err
 	})
 }
